@@ -1,0 +1,38 @@
+module.exports = {
+    root: true,
+    extends: "@react-native-community",
+  parser: "@babel/eslint-parse",
+    env: {
+        browser: true,
+        es6: true,
+        node: true,
+    },
+    plugins: ["react"],
+    parserOptions: {
+        ecmaVersion: 6,
+        sourceType: "module",
+        ecmaFeatures: {
+            jsx: true,
+        },
+    },
+    rules: {
+        indent: ["error", 4],
+        "linebreak-style": ['error', 'unix'],
+        quotes: ["error", "single"],
+        semi: ["error", "always"],
+        "react/jsx-uses-react": 'error',
+        "react/jsx-uses-vars": 'error',
+        "react/prop-types": 'error',
+        "react/display-name": 0,
+        "react/no-access-state-in-setstate": 'error',
+        "react/default-props-match-prop-types": 'error',
+        "react/sort-comp": 'error',
+        "react/sort-prop-types": 'error',
+        "react/jsx-first-prop-new-line": 'error',
+        "react/jsx-key": 'error',
+        "react/jsx-tag-spacing": 'error',
+        "react/jsx-sort-props": 'error',
+        "react/jsx-no-undef": 'error',
+        "no-console": 2,
+    },
+};
