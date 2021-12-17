@@ -1,55 +1,31 @@
 import React from 'react';
-import {
-  SafeAreaView,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { SafeAreaView } from 'react-native';
+import { Provider } from 'react-redux';
+import { PersistGate } from 'redux-persist/integration/react';
+import { persistStore } from 'redux-persist';
+import reduxStore from '@store';
+import Loader from './Components/Loader';
+import NavContainer from './ScreenRouting';
 
-import RNFS from 'react-native-fs';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+// export const reduxPersistStore = persistStore(reduxStore);
 
 export const Src = () => {
 
-  const takePicture  = () => {
-    const options = {
-        quality: 1,
-        maxWidth: 100,
-        maxHeight: 100,
-        includeBase64: true,
-        mediaType: 'photo'
+    const reduxPersistStore = persistStore(reduxStore);
+
+    const renderLoader = () => {
+        return (
+            <SafeAreaView style={{ flex: 1 }}>
+                <Loader LoadingMsg="Setting up please wait.." />
+            </SafeAreaView>
+        );
     };
 
-    const APP_FOLDER_NAME = 'Categorize';
-    const pictureFolder = `${RNFS.PicturesDirectoryPath}/${APP_FOLDER_NAME}`;
-
-    console.log('pictureFolder: ', pictureFolder);
-    
-    launchCamera(options, (response) => {
-        console.log('res : ',response);
-        const {assets = []} = response;
-        const { uri } = assets[0];
-        const fileName = new Date().getTime();
-        
-        RNFS.copyFile(uri, `${pictureFolder}/${fileName}`)
-            .then((res) => {
-                console.log('RES COPY: ', res);
-                RNFS.scanFile(`${albumPath}/${fileName}`)
-            }
-            )
-            .catch((err) => {console.log('err',err)});
-    });
-    
-  };
-
-  return (
-    <SafeAreaView style={{flex:1}}>
-          <View
-              style={{}}>
-              <TouchableOpacity onPress={() => { takePicture(); }}>
-                  <Text>Open Camera</Text>
-              </TouchableOpacity>
-          </View>
-    </SafeAreaView>
-  );
+    return (
+        <Provider store={reduxStore}>
+            <PersistGate loading={renderLoader()} persistor={reduxPersistStore}>
+                <NavContainer />
+            </PersistGate>
+        </Provider>
+    );
 };

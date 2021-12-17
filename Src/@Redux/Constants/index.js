@@ -1,0 +1,1 @@
+export const SET_IMAGE_DETAILS = 'SET_IMAGE_DETAILS';

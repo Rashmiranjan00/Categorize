@@ -1,0 +1,31 @@
+
+export default {
+    TBAsyncStorageKey: 'TBCacheKey000',
+    Colors: {
+        'primary': '#102b45',
+        'accent': '#FFB400',
+        'background': '#FFF',
+        'materialBackground': '#fff',
+        'surface': '#424242',
+        'error': '#C84040',
+        'text': '#696969',
+        'disabled': '#ACACAC',
+        'placeholder': '#BBBBBB',
+        'opacity': '20%',
+        'notification': '#Default',
+        'materialcard': '#FFF',
+        'darkSurface': '#f6f6f6',
+        'materialHeaderText': '#000000',
+        'subjectBackground': '#202020',
+        'icon': '#888888',
+        'statusBarColor': '#102B45',
+        'statusBarText': 'light-content',
+        'navBarColor': '#FFF',
+        'bottomBarColor': '#FFF',
+        'viewMore': '#7D7D7D',
+        'borderColor': '#D9D9D9',
+        'borderBottomColor': '#ebebeb',
+        'cardBackground': '#EAEDF0',
+    },
+
+};
