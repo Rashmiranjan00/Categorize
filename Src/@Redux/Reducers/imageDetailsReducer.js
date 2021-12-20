@@ -1,16 +1,24 @@
 import { SET_IMAGE_DETAILS } from '../Constants';
 
 const initialState = {
-    imageDetails: {},
+    imageDetails: [],
 };
 
 const imageDetailsReducer = (state = initialState, action) => {
-    const { type, imageDetails } = action;
+    const { type } = action;
+
     switch (type) {
-    case SET_IMAGE_DETAILS:
+
+    case SET_IMAGE_DETAILS: {
+        const { imageDetails} = action;
         return { ...state, imageDetails: imageDetails };
     }
-    return state;
+
+    default: {
+        return state;
+    }
+
+    }
 };
 
 export default imageDetailsReducer;

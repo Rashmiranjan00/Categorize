@@ -1,28 +1,48 @@
 import React, {useState} from 'react';
 import {
-    SafeAreaView,
-    ScrollView
+    SafeAreaView, Dimensions, View,
+    TouchableOpacity, Text, FlatList
 } from 'react-native';
-import { FAB, Portal, Provider } from 'react-native-paper';
-import RNFS from 'react-native-fs';
+import { FAB, Portal, Provider, TextInput} from 'react-native-paper';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { moderateScale } from 'react-native-size-matters';
+import Modal from 'react-native-modal';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import Icon from 'react-native-vector-icons/AntDesign';
+import DropDownPicker from 'react-native-dropdown-picker';
+
+import * as imageDetailsActions from '@Actions/imageDetailsActions';
+import * as categoryActions from '@Actions/categoryActions';
 
 import { GlobalStyles } from '@Styles/GlobalStyles';
 import Config from '@Config/default';
+import { useNavigation } from '@react-navigation/native';
 
 const { Colors } = Config;
 
-const HomeScreen = () => {
+const HomeScreen = ({...props}) => {
+
+    const navigation = useNavigation();
+
+    const { setImageDetails, imageDetails, setCategoryDetails, categories } = props;
 
     const [fabOpen, setFabOpen] = useState({open:false});
+    const [modal, setModal] = useState(false);
+    const [imgResponse, setImgResponse] = useState({});
+    const [name, setName] = useState('');
+
+    const [ddOpen, setDdOpen] = useState(false);
+    const [ddValue, setDdValue] = useState(null);
+    const [ddItems, setDdItems] = useState([...categories]);
+
+    const [showTextView, setShowTextView] = useState(false);
 
     const onFabChange = ({open}) => {
         setFabOpen({open});
     };
 
     const {open} = fabOpen;
-
 
     const takePicture = () => {
         const options = {
@@ -34,13 +54,8 @@ const HomeScreen = () => {
             saveToPhotos: true,
         };
 
-        const APP_FOLDER_NAME = 'Categorize';
-        const pictureFolder = `${RNFS.PicturesDirectoryPath}/${APP_FOLDER_NAME}`;
-
-        console.log('pictureFolder: ', pictureFolder);
-
         launchCamera(options, (response) => {
-            console.log('res : ', response);
+            setImgResponse(response);
 
             if (response.didCancel) {
                 console.log('User cancelled image picker');
@@ -49,16 +64,7 @@ const HomeScreen = () => {
             } else if (response.customButton) {
                 console.log('User tapped custom button: ', response.customButton);
             } else {
-                const { assets = [] } = response;
-                const { uri } = assets[0];
-                const fileName = new Date().getTime();
-                // RNFS.copyFile(uri, `${pictureFolder}/${fileName}`)
-                //     .then((res) => {
-                //         console.log('RES COPY: ', res);
-                //         RNFS.scanFile(`${pictureFolder}/${fileName}`);
-                //     }
-                //     )
-                //     .catch((err) => { console.log('err', err); });
+                setModal(true);
             }
         });
 
@@ -70,7 +76,7 @@ const HomeScreen = () => {
         };
 
         launchImageLibrary(options, (response) => {
-            console.log('Response = ', response);
+            setImgResponse(response);
 
             if (response.didCancel) {
                 console.log('User cancelled image picker');
@@ -79,7 +85,8 @@ const HomeScreen = () => {
             } else if (response.customButton) {
                 console.log('User tapped custom button: ', response.customButton);
             } else {
-                // console.log('response', JSON.stringify(response));
+
+                setModal(true);
             }
         });
     };
@@ -115,18 +122,171 @@ const HomeScreen = () => {
         );
     };
 
+    const setDetailsForImages = () => {
+        console.log('res : ', imgResponse);
+
+        const { assets = [] } = imgResponse;
+        const { uri } = assets[0];
+
+        const imgObj = {};
+        imgObj.id = new Date().getTime();
+        imgObj.uri = uri;
+
+        setImageDetails([{ ...imgObj }, ...imageDetails]);
+
+    };
+
+    const createCategory = () => {
+
+        const { assets = [] } = imgResponse;
+        const { uri } = assets[0];
+
+        const imgObj = {};
+        imgObj.id = new Date().getTime();
+        imgObj.uri = uri;
+
+        const catObj = {};
+        catObj.id = new Date().getTime();
+        catObj.name = name;
+        catObj.images = [imgObj];
+        setCategoryDetails([{...catObj}, ...categories]);
+        setModal(false);
+
+    };
+
+    const addImageToCategory = () => {
+        const { assets = [] } = imgResponse;
+        const { uri } = assets[0];
+
+        const imgObj = {};
+        imgObj.id = new Date().getTime();
+        imgObj.uri = uri;
+        categories.map((x) => x.id === ddValue ? x.images = [{ ...imgObj }, ...x.images] : x);
+        // setCategoryDetails(ddItems);
+        setModal(false);
+        
+    };
+
+    const renderCategoryModal = () => {
+        return (
+            <View 
+                style={{
+                    backgroundColor: Colors.background,
+                    borderRadius: moderateScale(6),
+                    padding: moderateScale(20),
+                    paddingHorizontal: moderateScale(15),
+                    width: '90%',}}>
+                <View>
+                    <DropDownPicker
+                        items={ddItems}
+                        open={ddOpen}
+                        placeholder='Select your Category'
+                        schema={{
+                            label: 'name',
+                            value: 'id'
+                        }}
+                        setItems={setDdItems}
+                        setOpen={setDdOpen}
+                        setValue={setDdValue}
+                        value={ddValue}
+                    />
+                    <View style={{flexDirection:'row', alignItems:'center', marginTop:moderateScale(10)}}>
+                        <Icon
+                            color={'#f00'}
+                            name={'pluscircleo'}
+                            onPress={() => setShowTextView(!showTextView)}
+                            size={moderateScale(25)}
+                        />
+                        <Text style={{color:'#000', marginLeft:moderateScale(5)}}>Create Category</Text>
+                    </View>
+                    {(showTextView) && <TextInput
+                        label="Category"
+                        mode='outlined'
+                        onChangeText={text => setName(text)}
+                        placeholder='Enter Category Name'
+                        style={{marginTop:moderateScale(10)}}
+                        value={name}
+                    />}
+                    <TouchableOpacity
+                        onPress={() => showTextView ? createCategory() : addImageToCategory()} 
+                        style={{
+                            paddingHorizontal: moderateScale(25),
+                            paddingVertical: moderateScale(8),
+                            backgroundColor: Colors.accent,
+                            borderRadius: moderateScale(6),
+                            justifyContent: 'center', alignItems: 'center',
+                            flexDirection: 'row',
+                            marginVertical:moderateScale(10)
+                        }}>
+                        <Text>Add Image to Category</Text>
+                    </TouchableOpacity>
+                </View>
+
+            </View>
+        );
+    };
+
     return (
         <SafeAreaView style={[GlobalStyles().mainContainer, { backgroundColor: Colors.background, height:'100%', width:'100%' }]}>
-            <ScrollView
-                contentContainerStyle={{ paddingHorizontal: moderateScale(10), paddingBottom: moderateScale(100), backgroundColor: Colors.background }}
+            {(categories.length > 0) && <FlatList
+                contentContainerStyle={{ paddingBottom: moderateScale(80), padding: moderateScale(20) }}
+                data={categories}
+                keyExtractor={item => item.id.toString()}
+                maxToRenderPerBatch={4}
+                onEndThreshold={0.6}
+                renderItem={({ item }) => (
+                    <View style={{width:'100%', height:moderateScale(60), 
+                        margin:moderateScale(5), padding:moderateScale(10), 
+                        backgroundColor:Colors.accent, justifyContent:'center', borderRadius:moderateScale(20), elevation:4}}>
+                        <TouchableOpacity onPress={() => navigation.navigate('Images',{item:item})}>
+                            <Text style={{fontSize:moderateScale(20)}}>
+                                {item.name}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
                 showsVerticalScrollIndicator={false}
-            >
-
-            </ScrollView>
+                windowSize={6}
+            />}
             {renderAddOptions()}
+            <Modal
+                backdropColor={'#000'}
+                deviceHeight={Math.max(Dimensions.get('window').height, Dimensions.get('screen').height)}
+                deviceWidth={Math.max(Dimensions.get('window').width, Dimensions.get('screen').width)}
+                dismissable={true}
+                hasBackdrop={true}
+                isVisible={modal}
+                onBackButtonPress={() => setModal(false)}
+                onBackdropPress={() => setModal(false)}
+                style={{ justifyContent: 'center', alignItems: 'center', margin: 0, padding: 0 }}
+                useNativeDriver={true}
+            >
+                {renderCategoryModal()}
+            </Modal>
         </SafeAreaView>
 
     );
 };
 
-export default HomeScreen;
+HomeScreen.propTypes = {
+    categories: PropTypes.array.isRequired,
+    imageDetails: PropTypes.array.isRequired,
+    setCategoryDetails: PropTypes.func.isRequired,
+    setImageDetails: PropTypes.func.isRequired,
+};
+
+const mapStateToProps = (state) => {
+    return {
+        imageDetails: state.imageData.imageDetails,
+        categories: state.categoryData.categoryDetails,
+    };
+};
+
+const mapDispatchToProps = (dispatch) => ({
+    setImageDetails:(imgDetails) => 
+        dispatch(imageDetailsActions.setImageDetails(imgDetails)),
+    setCategoryDetails:(catDetails) => 
+        dispatch(categoryActions.setCategoryDetails(catDetails)),
+});
+
+export default connect(mapStateToProps, mapDispatchToProps) (HomeScreen);
