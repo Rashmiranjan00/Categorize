@@ -44,6 +44,12 @@ const HomeScreen = ({...props}) => {
 
     const {open} = fabOpen;
 
+    const resetModal = () => {
+        setShowTextView(false);
+        setName('');
+        setDdValue(null);
+    };
+
     const takePicture = () => {
         const options = {
             quality: 1,
@@ -151,6 +157,7 @@ const HomeScreen = ({...props}) => {
         catObj.images = [imgObj];
         setCategoryDetails([{...catObj}, ...categories]);
         setModal(false);
+        resetModal();
 
     };
 
@@ -164,6 +171,7 @@ const HomeScreen = ({...props}) => {
         categories.map((x) => x.id === ddValue ? x.images = [{ ...imgObj }, ...x.images] : x);
         // setCategoryDetails(ddItems);
         setModal(false);
+        resetModal();
         
     };
 
